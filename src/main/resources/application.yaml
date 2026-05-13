@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: liujie-ai-code-backend
+server:
+  port: 8123
+  servlet:
+    context-path: /api
+
+
+
+#  knife4j配置
+springdoc:
+  group-configs:
+    - group: 'default'
+      paths-to-match: '/**'
+      packages-to-scan: com.liujie.liujieaicode.cotroller
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
