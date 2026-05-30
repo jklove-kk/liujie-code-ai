@@ -7,6 +7,7 @@ import com.mybatisflex.core.service.IService;
 import com.liujie.liujieaicode.model.entity.App;
 import com.liujie.liujieaicode.model.entity.User;
 import com.mybatisflex.core.query.QueryWrapper;
+import reactor.core.publisher.Flux;
 
 /**
  * 应用 服务层。
@@ -65,4 +66,13 @@ public interface AppService extends IService<App> {
      * @return 查询条件
      */
     QueryWrapper getFeaturedQueryWrapper(AppQueryRequest appQueryRequest);
+
+    /**
+     * 通过聊天生成代码
+     * @param appId
+     * @param message
+     * @param loginUser
+     * @return
+     */
+    Flux<String> chatToGenCode(Long appId, String message, User loginUser);
 }
