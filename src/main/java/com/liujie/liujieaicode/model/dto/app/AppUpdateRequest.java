@@ -17,5 +17,10 @@ public class AppUpdateRequest implements Serializable {
      */
     private String appName;
 
+    /**
+     * 代码生成类型
+     */
+    private String codeGenType;
+
     private static final long serialVersionUID = 1L;
 }

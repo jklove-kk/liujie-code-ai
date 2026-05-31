@@ -11,10 +11,7 @@ import com.liujie.liujieaicode.constant.UserConstant;
 import com.liujie.liujieaicode.exception.BusinessException;
 import com.liujie.liujieaicode.exception.ErrorCode;
 import com.liujie.liujieaicode.exception.ThrowUtils;
-import com.liujie.liujieaicode.model.dto.app.AppAddRequest;
-import com.liujie.liujieaicode.model.dto.app.AppAdminUpdateRequest;
-import com.liujie.liujieaicode.model.dto.app.AppQueryRequest;
-import com.liujie.liujieaicode.model.dto.app.AppUpdateRequest;
+import com.liujie.liujieaicode.model.dto.app.*;
 import com.liujie.liujieaicode.model.entity.App;
 import com.liujie.liujieaicode.model.entity.User;
 import com.liujie.liujieaicode.service.AppService;
@@ -213,6 +210,26 @@ public class AppController {
                             .build();
                 });
     }
+
+    /**
+     * 应用部署
+     *
+     * @param appDeployRequest 部署请求
+     * @param request          请求
+     * @return 部署 URL
+     */
+    @PostMapping("/deploy")
+    public BaseResponse<String> deployApp(@RequestBody AppDeployRequest appDeployRequest, HttpServletRequest request) {
+        ThrowUtils.throwIf(appDeployRequest == null, ErrorCode.PARAMS_ERROR);
+        Long appId = appDeployRequest.getAppId();
+        ThrowUtils.throwIf(appId == null || appId <= 0, ErrorCode.PARAMS_ERROR, "应用 ID 不能为空");
+        // 获取当前登录用户
+        User loginUser = userService.getLoginUser(request);
+        // 调用服务部署应用
+        String deployUrl = appService.deployApp(appId, loginUser);
+        return ResultUtils.success(deployUrl);
+    }
+
 
 
 
