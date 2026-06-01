@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 用户 控制层。
+ * 用户 控制层
  *
  * @author <a href="https://github.com/jklove-kk/liujie-code-ai">Jklove</a>
  */
@@ -90,7 +90,7 @@ public class UserController {
     }
 
     /**
-     * 保存用户。
+     * 保存用户
      *
      * @param user 用户
      * @return {@code true} 保存成功，{@code false} 保存失败
@@ -102,7 +102,7 @@ public class UserController {
     }
 
     /**
-     * 根据主键删除用户。
+     * 根据主键删除用户
      *
      * @param id 主键
      * @return {@code true} 删除成功，{@code false} 删除失败
@@ -113,7 +113,7 @@ public class UserController {
     }
 
     /**
-     * 根据主键更新用户。
+     * 根据主键更新用户
      *
      * @param user 用户
      * @return {@code true} 更新成功，{@code false} 更新失败
@@ -124,7 +124,7 @@ public class UserController {
     }
 
     /**
-     * 查询所有用户。
+     * 查询所有用户
      *
      * @return 所有数据
      */
@@ -134,7 +134,7 @@ public class UserController {
     }
 
     /**
-     * 根据主键获取用户。
+     * 根据主键获取用户
      *
      * @param id 用户主键
      * @return 用户详情
@@ -145,7 +145,7 @@ public class UserController {
     }
 
     /**
-     * 分页查询用户。
+     * 分页查询用户
      *
      * @param page 分页对象
      * @return 分页对象

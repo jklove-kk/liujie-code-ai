@@ -28,7 +28,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 /**
- * 应用 控制层。
+ * 应用 控制层
  *
  * @author <a href="https://github.com/jklove-kk/liujie-code-ai">Jklove</a>
  */
