@@ -4,4 +4,9 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.liujie.liujieaicode.mapper.ChatHistoryMapper">
 
+    <!-- 根据应用ID逻辑删除所有对话历史 -->
+    <update id="deleteByAppId">
+        UPDATE chat_history SET isDelete = 1 WHERE appId = #{appId} AND isDelete = 0
+    </update>
+
 </mapper>

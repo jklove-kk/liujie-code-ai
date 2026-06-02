@@ -15,12 +15,14 @@ import com.liujie.liujieaicode.model.dto.app.*;
 import com.liujie.liujieaicode.model.entity.App;
 import com.liujie.liujieaicode.model.entity.User;
 import com.liujie.liujieaicode.service.AppService;
+import com.liujie.liujieaicode.service.ChatHistoryService;
 import com.liujie.liujieaicode.service.UserService;
 import com.mybatisflex.core.paginate.Page;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
@@ -41,6 +43,9 @@ public class AppController {
 
     @Resource
     private UserService userService;
+
+    @Resource
+    private ChatHistoryService chatHistoryService;
 
     /**
      * 用户创建应用
@@ -124,10 +129,13 @@ public class AppController {
      */
     @PostMapping("/admin/delete")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    @Transactional(rollbackFor = Exception.class)
     public BaseResponse<Boolean> deleteAppByAdmin(@RequestBody DeleteRequest deleteRequest) {
         if (deleteRequest == null || deleteRequest.getId() == null || deleteRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
+        // 关联删除该应用的所有对话历史
+        chatHistoryService.deleteByAppId(deleteRequest.getId());
         boolean result = appService.removeById(deleteRequest.getId());
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         return ResultUtils.success(true);

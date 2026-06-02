@@ -17,9 +17,11 @@ import com.liujie.liujieaicode.model.dto.app.AppQueryRequest;
 import com.liujie.liujieaicode.model.dto.app.AppUpdateRequest;
 import com.liujie.liujieaicode.model.entity.User;
 import com.liujie.liujieaicode.service.AppService;
+import com.liujie.liujieaicode.service.ChatHistoryService;
 import com.mybatisflex.core.query.QueryWrapper;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 
 import java.io.File;
@@ -35,6 +37,9 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
 
     @Resource
     private AiCodeGeneratorFacade aiCodeGeneratorFacade;
+
+    @Resource
+    private ChatHistoryService chatHistoryService;
 
     @Override
     public Long addApp(AppAddRequest appAddRequest, User loginUser) {
@@ -83,12 +88,15 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Boolean deleteMyApp(Long id, User loginUser) {
         if (id == null || id <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         App app = this.getById(id);
         checkAppOwner(app, loginUser);
+        // 关联删除该应用的所有对话历史
+        chatHistoryService.deleteByAppId(id);
         boolean result = this.removeById(id);
         if (!result) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR);
@@ -171,14 +179,33 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
         if (!app.getUserId().equals(loginUser.getId())) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无权限访问该应用");
         }
-        // 4. 获取应用的代码生成类型
+        // 4. 保存用户消息到对话历史
+        Long userMessageId = chatHistoryService.saveUserMessage(appId, loginUser.getId(), message);
+        // 5. 获取应用的代码生成类型
         String codeGenTypeStr = app.getCodeGenType();
         CodeGenTypeEnum codeGenTypeEnum = CodeGenTypeEnum.getEnumByValue(codeGenTypeStr);
         if (codeGenTypeEnum == null) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "不支持的代码生成类型");
         }
-        // 5. 调用 AI 生成代码
-        return aiCodeGeneratorFacade.generateAndSaveCodeStream(message, codeGenTypeEnum, appId);
+        // 6. 调用 AI 生成代码（流式），并保存AI回复结果
+        StringBuilder aiResponseBuilder = new StringBuilder();
+        return aiCodeGeneratorFacade.generateAndSaveCodeStream(message, codeGenTypeEnum, appId)
+                .doOnNext(chunk -> {
+                    // 收集完整的AI回复内容
+                    aiResponseBuilder.append(chunk);
+                })
+                .doOnComplete(() -> {
+                    // AI 回复成功，保存完整消息
+                    String aiResponse = aiResponseBuilder.toString();
+                    if (StrUtil.isNotBlank(aiResponse)) {
+                        chatHistoryService.saveAiMessage(appId, loginUser.getId(), aiResponse);
+                    }
+                })
+                .doOnError(error -> {
+                    // AI 回复失败，记录错误信息
+                    chatHistoryService.saveAiErrorMessage(appId, loginUser.getId(),
+                            "AI回复失败: " + error.getMessage());
+                });
     }
 
 
