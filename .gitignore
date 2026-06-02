@@ -38,3 +38,4 @@ application-local.yml
 application-local.yaml
 test/java/**
 tmp
+/.claude/settings.local.json
