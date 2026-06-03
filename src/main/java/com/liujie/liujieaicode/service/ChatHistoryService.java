@@ -5,6 +5,7 @@ import com.liujie.liujieaicode.model.entity.User;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.service.IService;
 import com.liujie.liujieaicode.model.entity.ChatHistory;
+import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 
 import java.util.List;
 
@@ -78,4 +79,13 @@ public interface ChatHistoryService extends IService<ChatHistory> {
      * @param appId 应用ID
      */
     void deleteByAppId(Long appId);
+
+    /**
+     * 将应用的历史对话加载到内存中
+     * @param appId
+     * @param chatMemory
+     * @param maxCount
+     * @return
+     */
+     int loadChatHistoryToMemory(Long appId, MessageWindowChatMemory chatMemory, int maxCount);
 }
