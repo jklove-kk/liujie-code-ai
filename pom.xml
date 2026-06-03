@@ -69,6 +69,12 @@
             <version>1.11.0</version>
         </dependency>
 
+        <!-- Spring Session + Redis -->
+        <dependency>
+            <groupId>org.springframework.session</groupId>
+            <artifactId>spring-session-data-redis</artifactId>
+        </dependency>
+
         <!-- 代码生成模块 -->
         <dependency>
             <groupId>com.mybatis-flex</groupId>
