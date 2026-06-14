@@ -5,6 +5,7 @@ import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import com.liujie.liujieaicode.constant.AppConstant;
 import com.liujie.liujieaicode.core.AiCodeGeneratorFacade;
+import com.liujie.liujieaicode.core.handler.StreamHandlerExecutor;
 import com.liujie.liujieaicode.exception.BusinessException;
 import com.liujie.liujieaicode.exception.ErrorCode;
 import com.liujie.liujieaicode.exception.ThrowUtils;
@@ -40,6 +41,9 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
 
     @Resource
     private ChatHistoryService chatHistoryService;
+
+    @Resource
+    private StreamHandlerExecutor streamHandlerExecutor;
 
     @Override
     public Long addApp(AppAddRequest appAddRequest, User loginUser) {
@@ -189,23 +193,8 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
         }
         // 6. 调用 AI 生成代码（流式），并保存AI回复结果
         StringBuilder aiResponseBuilder = new StringBuilder();
-        return aiCodeGeneratorFacade.generateAndSaveCodeStream(message, codeGenTypeEnum, appId)
-                .doOnNext(chunk -> {
-                    // 收集完整的AI回复内容
-                    aiResponseBuilder.append(chunk);
-                })
-                .doOnComplete(() -> {
-                    // AI 回复成功，保存完整消息
-                    String aiResponse = aiResponseBuilder.toString();
-                    if (StrUtil.isNotBlank(aiResponse)) {
-                        chatHistoryService.saveAiMessage(appId, loginUser.getId(), aiResponse);
-                    }
-                })
-                .doOnError(error -> {
-                    // AI 回复失败，记录错误信息
-                    chatHistoryService.saveAiErrorMessage(appId, loginUser.getId(),
-                            "AI回复失败: " + error.getMessage());
-                });
+        Flux<String> codeStream = aiCodeGeneratorFacade.generateAndSaveCodeStream(message, codeGenTypeEnum, appId);
+        return streamHandlerExecutor.doExecute(codeStream, chatHistoryService, appId, loginUser,codeGenTypeEnum);
     }
 
 
